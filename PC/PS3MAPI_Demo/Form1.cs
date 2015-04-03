@@ -6,7 +6,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 namespace PS3Lib_Mod_Demo
 {
@@ -26,24 +25,36 @@ namespace PS3Lib_Mod_Demo
                 btnDisconnect.Enabled = true;
                 btnConnect.Enabled = false;
                 txtB_Ip.Enabled = false;
-                txtB_Port.Enabled = false;
+               // txtB_Port.Enabled = false;
                 if (PS3M_API.IsAttached)
                 {
-                    tabC_Process.Enabled = true;
-                    tabP_Modules.Enabled = true;
+                    p_GetMem.Enabled = true;
+                    p_SetMem.Enabled = true;
+                    p_PluginsAdv.Enabled = true;
+                    tabP_PluginsAdv.Enabled = true;
                     btnUnattach.Enabled = true;
                     comboB_Procs.Enabled = false;
                     btnRefresh.Enabled = false;
                     btnAttach.Enabled = false;
+                    btnUnattach2.Enabled = true;
+                    comboB_Procs2.Enabled = false;
+                    btnRefresh2.Enabled = false;
+                    btnAttach2.Enabled = false;
                 }
                 else
                 {
-                    tabC_Process.Enabled = false;
-                    tabP_Modules.Enabled = false;
+                    p_GetMem.Enabled = false;
+                    p_SetMem.Enabled = false;
+                    p_PluginsAdv.Enabled = false;
+                    tabP_PluginsAdv.Enabled = false;
                     btnUnattach.Enabled = false;
                     comboB_Procs.Enabled = true;
                     btnRefresh.Enabled = true;
                     btnAttach.Enabled = true;
+                    btnUnattach2.Enabled = false;
+                    comboB_Procs2.Enabled = true;
+                    btnRefresh2.Enabled = true;
+                    btnAttach2.Enabled = true;
                     lV_Modules.Items.Clear();
                 }
             }
@@ -53,11 +64,12 @@ namespace PS3Lib_Mod_Demo
                 btnDisconnect.Enabled = false;
                 btnConnect.Enabled = true;
                 txtB_Ip.Enabled = true;
-                txtB_Port.Enabled = true;
+                // txtB_Port.Enabled = true;
                 comboB_Procs.Items.Clear();
+                comboB_Procs2.Items.Clear();
             }
         }
-        private void FormSyscallUpdate()
+        private void FormMimicOFWUpdate()
         {
             if (PS3M_API.IsConnected)
             {
@@ -142,22 +154,28 @@ namespace PS3Lib_Mod_Demo
                         cb_Syscall_8_P2.Checked = false;
                         cb_Syscall_8_P3.Checked = false;
                         cb_Syscall_8_D.Checked = false;
+                        mtxtB_IDPS.Text = PS3M_API.PS3.GetIDPS();
+                        mtxtB_PSID.Text = PS3M_API.PS3.GetPSID();
                     }
-                    else if (PS3M_API.PS3.PartialCheckSyscall8() == PS3MAPI.PS3_CMD.Syscall8Mode.Only_PS3MAPI_Enabled)
+                    else if (PS3M_API.PS3.PartialCheckSyscall8() == PS3MAPI.PS3_CMD.Syscall8Mode.Only_CobraMambaAndPS3MAPI_Enabled)
                     {
                         cb_Syscall_8.Checked = true;
                         cb_Syscall_8_P1.Checked = true;
                         cb_Syscall_8_P2.Checked = false;
                         cb_Syscall_8_P3.Checked = false;
                         cb_Syscall_8_D.Checked = false;
+                        mtxtB_IDPS.Text = PS3M_API.PS3.GetIDPS();
+                        mtxtB_PSID.Text = PS3M_API.PS3.GetPSID();
                     }
-                    else if (PS3M_API.PS3.PartialCheckSyscall8()  == PS3MAPI.PS3_CMD.Syscall8Mode.Only_CobraMambaAndPS3MAPI_Enabled)
+                    else if (PS3M_API.PS3.PartialCheckSyscall8() == PS3MAPI.PS3_CMD.Syscall8Mode.Only_PS3MAPI_Enabled)
                     {
                         cb_Syscall_8.Checked = true;
                         cb_Syscall_8_P1.Checked = false;
                         cb_Syscall_8_P2.Checked = true;
                         cb_Syscall_8_P3.Checked = false;
                         cb_Syscall_8_D.Checked = false;
+                        mtxtB_IDPS.Text = PS3M_API.PS3.GetIDPS();
+                        mtxtB_PSID.Text = PS3M_API.PS3.GetPSID();
                     }
                     else if (PS3M_API.PS3.PartialCheckSyscall8() == PS3MAPI.PS3_CMD.Syscall8Mode.FakeDisabled)
                     {
@@ -191,8 +209,9 @@ namespace PS3Lib_Mod_Demo
             cB_PS3_Led_Mode.SelectedIndex = 1;
             cB_PS3_Led_Color.SelectedIndex = 1;
             lbl_Lib_Version.Text = "Lib v" + PS3M_API.GetLibVersion_Str();
+            tabC_Global.TabPages.Remove(tabP_PluginsAdv);
             FormUpdate();
-            FormSyscallUpdate();
+            FormMimicOFWUpdate();
         }
         private void Form1_Closed(object sender, FormClosedEventArgs e)
         {
@@ -308,13 +327,16 @@ namespace PS3Lib_Mod_Demo
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             FormUpdate();
-            FormSyscallUpdate();
+            FormMimicOFWUpdate();
             btnRefresh_Click(sender, e);
             btn_Temp_Refresh_Click(sender, e);
+            VSHPlug_Refresh_Click(sender, e);
             p_Connection.Enabled = true;  
         }
         private void btnDisconnect_Click(object sender, EventArgs e)
         {
+            tabP_Processes.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 PS3M_API.DisconnectTarget();
@@ -323,18 +345,26 @@ namespace PS3Lib_Mod_Demo
             {
                 //MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            tabP_Processes.Enabled = true;
+            tabP_PluginsAdv.Enabled = true;
             FormUpdate();
         }
         //PROCESS
         private void btnRefresh_Click(object sender, EventArgs e)
         {
             tabP_Processes.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 comboB_Procs.Items.Clear();
+                comboB_Procs2.Items.Clear();
                 foreach (uint pid in PS3M_API.Process.GetPidProcesses())
                 {
-                    if (pid != 0) comboB_Procs.Items.Add(PS3M_API.Process.GetName(pid));
+                    if (pid != 0)
+                    {
+                        comboB_Procs2.Items.Add(PS3M_API.Process.GetName(pid));
+                        comboB_Procs.Items.Add(PS3M_API.Process.GetName(pid));
+                    }
                     else break;
                 }
                 comboB_Procs.SelectedIndex = 0;
@@ -343,11 +373,13 @@ namespace PS3Lib_Mod_Demo
             {
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            tabP_Processes.Enabled = true;   
+            tabP_Processes.Enabled = true;
+            tabP_PluginsAdv.Enabled = true;
         }
         private void btnAttach_Click(object sender, EventArgs e)
         {
             tabP_Processes.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 if (!PS3M_API.AttachProcess(PS3M_API.Process.Processes_Pid[comboB_Procs.SelectedIndex]))
@@ -362,6 +394,36 @@ namespace PS3Lib_Mod_Demo
 
                     }
                 }
+                comboB_Procs2.SelectedIndex = comboB_Procs.SelectedIndex;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            FormUpdate();
+            //btn_Module_Refresh_Click(sender, e);
+            tabP_Processes.Enabled = true;
+            tabP_PluginsAdv.Enabled = true; 
+        }
+        private void btnAttach2_Click(object sender, EventArgs e)
+        {
+            tabP_Processes.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
+            try
+            {
+                if (!PS3M_API.AttachProcess(PS3M_API.Process.Processes_Pid[comboB_Procs2.SelectedIndex]))
+                {
+                    MessageBox.Show("Impossible to attach :(", "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        PS3M_API.DisconnectTarget();
+                    }
+                    catch
+                    {
+
+                    }
+                }
+                comboB_Procs.SelectedIndex = comboB_Procs2.SelectedIndex;
             }
             catch (Exception ex)
             {
@@ -369,11 +431,13 @@ namespace PS3Lib_Mod_Demo
             }
             FormUpdate();
             btn_Module_Refresh_Click(sender, e);
-            tabP_Processes.Enabled = true;      
+            tabP_Processes.Enabled = true;
+            tabP_PluginsAdv.Enabled = true;
         }
         private void btnUnattach_Click(object sender, EventArgs e)
         {
             tabP_Processes.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 PS3M_API.AttachProcess(0);
@@ -384,15 +448,24 @@ namespace PS3Lib_Mod_Demo
             }
             FormUpdate();
             tabP_Processes.Enabled = true;
+            tabP_PluginsAdv.Enabled = true;
+        }
+        private void comboB_Procs2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboB_Procs.SelectedIndex != comboB_Procs2.SelectedIndex) comboB_Procs.SelectedIndex = comboB_Procs2.SelectedIndex;
+        }
+        private void comboB_Procs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboB_Procs2.SelectedIndex != comboB_Procs.SelectedIndex) comboB_Procs2.SelectedIndex = comboB_Procs.SelectedIndex;
         }
        //MEMORY
         private void btnGetMem_Click(object sender, EventArgs e)
         {
-            tabP_GetMem.Enabled = false;
+            tabP_Processes.Enabled = false;
             try
             {
                 byte[] buffer = new byte[int.Parse(nUD_GetLength.Value.ToString())];
-                uint offset = Convert.ToUInt32(txtB_GetOffset.Text, 16);
+                ulong offset = Convert.ToUInt64(txtB_GetOffset.Text, 16);
                 PS3M_API.Process.Memory.Get(PS3M_API.Process.Process_Pid, offset, buffer);
                 textOutput.Text = ByteArrayToString(buffer);
             }
@@ -400,23 +473,23 @@ namespace PS3Lib_Mod_Demo
             {
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            tabP_GetMem.Enabled = true;
+            tabP_Processes.Enabled = true;
         }       
         private void btnSetMem_Click(object sender, EventArgs e)
         {
-            tabP_SetMem.Enabled = false;
+            tabP_Processes.Enabled = false;
             try
             {
-                byte[] buffer = new byte[textValue.Text.Length / 2];
-                buffer = StringToByteArray(textValue.Text);
-                uint offset = Convert.ToUInt32(txtB_SetOffset.Text, 16);
+                byte[] buffer = new byte[textInput.Text.Length / 2];
+                buffer = StringToByteArray(textInput.Text);
+                ulong offset = Convert.ToUInt64(txtB_SetOffset.Text, 16);
                 PS3M_API.Process.Memory.Set(PS3M_API.Process.Process_Pid, offset, buffer);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            tabP_SetMem.Enabled = true;
+            tabP_Processes.Enabled = true;
         }
         //PS3
         private void btn_Temp_Refresh_Click(object sender, EventArgs e)
@@ -528,7 +601,7 @@ namespace PS3Lib_Mod_Demo
                 }
                 else PS3M_API.PS3.PartialDisableSyscall8(PS3MAPI.PS3_CMD.Syscall8Mode.Enabled);
                 FormUpdate();
-                FormSyscallUpdate();
+                FormMimicOFWUpdate();
             }
             catch (Exception ex)
             {
@@ -562,10 +635,36 @@ namespace PS3Lib_Mod_Demo
             }
             p_PS3_Notify.Enabled = true;    
         }
-        //MODULES
+        private void btn_PS3_SetIDPS_Click(object sender, EventArgs e)
+        {
+            p_PS3_MimicOFW.Enabled = false;
+            try
+            {
+                PS3M_API.PS3.SetIDPS(mtxtB_IDPS.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            p_PS3_MimicOFW.Enabled = true;    
+        }
+        private void btn_PS3_SetPSID_Click(object sender, EventArgs e)
+        {
+            p_PS3_MimicOFW.Enabled = false;
+            try
+            {
+                PS3M_API.PS3.SetPSID(mtxtB_PSID.Text);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            p_PS3_MimicOFW.Enabled = true;   
+        }
+        //ADVANCED PLUGINS
         private void btn_Module_Refresh_Click(object sender, EventArgs e)
         {
-            tabP_Modules.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 lV_Modules.Items.Clear();
@@ -585,11 +684,11 @@ namespace PS3Lib_Mod_Demo
             {
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            tabP_Modules.Enabled = true;   
+            tabP_PluginsAdv.Enabled = true;   
         }
         private void btn_Module_Unload_Click(object sender, EventArgs e)
         {
-            tabP_Modules.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 PS3M_API.Process.Modules.Unload(PS3M_API.Process.Process_Pid, PS3M_API.Process.Modules.Modules_Prx_Id[lV_Modules.SelectedItems[0].Index]);
@@ -599,11 +698,11 @@ namespace PS3Lib_Mod_Demo
             {
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            tabP_Modules.Enabled = true;   
+            tabP_PluginsAdv.Enabled = true;   
         }
         private void btn_Module_Load_Click(object sender, EventArgs e)
         {
-            tabP_Modules.Enabled = false;
+            tabP_PluginsAdv.Enabled = false;
             try
             {
                 PS3M_API.Process.Modules.Load(PS3M_API.Process.Process_Pid, tB_Module_Path.Text);
@@ -613,7 +712,205 @@ namespace PS3Lib_Mod_Demo
             {
                 MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            tabP_Modules.Enabled = true;   
+            tabP_PluginsAdv.Enabled = true;   
+        }
+        //VSH PLUGINS
+        private void VSHPlug_Refresh_Click(object sender, EventArgs e)
+        {
+            VSHPlug_Refresh.Enabled = false;
+            panel8.Enabled = false;
+            panel9.Enabled = false;
+            try
+            {
+                string name = ""; string path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(0, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_0.Text = name;
+                    VSHPlug_Path_0.Text = path;
+                    btn_VSHPlug_0.Text = "Reserved";
+                    VSHPlug_Path_0.ReadOnly = true;
+                    btn_VSHPlug_0.Enabled = false;
+                }
+                else
+                {
+                    VSHPlug_Name_0.Text = "Reserved";
+                    VSHPlug_Path_0.Text = "Reserved";
+                    btn_VSHPlug_0.Text = "Reserved";
+                    VSHPlug_Path_0.ReadOnly = true;
+                    btn_VSHPlug_0.Enabled = false;
+                }
+                name = ""; path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(1, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_1.Text = name;
+                    VSHPlug_Path_1.Text = path;
+                    btn_VSHPlug_1.Text = "Unload";
+                    VSHPlug_Path_1.ReadOnly = true;
+                    btn_VSHPlug_1.Enabled = true;
+                }
+                else
+                {
+                    VSHPlug_Name_1.Text = "NONE";
+                    VSHPlug_Path_1.Text = "/dev_hdd0/tmp/vsh_plugin_1.sprx";
+                    btn_VSHPlug_1.Text = "Load";
+                    VSHPlug_Path_1.ReadOnly = false;
+                    btn_VSHPlug_1.Enabled = true;
+                }
+                name = ""; path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(2, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_2.Text = name;
+                    VSHPlug_Path_2.Text = path;
+                    btn_VSHPlug_2.Text = "Unload";
+                    VSHPlug_Path_2.ReadOnly = true;
+                    btn_VSHPlug_2.Enabled = true;
+                }
+                else
+                {
+                    VSHPlug_Name_2.Text = "NONE";
+                    VSHPlug_Path_2.Text = "/dev_hdd0/tmp/vsh_plugin_2.sprx";
+                    btn_VSHPlug_2.Text = "Load";
+                    VSHPlug_Path_2.ReadOnly = false;
+                    btn_VSHPlug_2.Enabled = true;
+                }
+                name = ""; path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(3, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_3.Text = name;
+                    VSHPlug_Path_3.Text = path;
+                    btn_VSHPlug_3.Text = "Unload";
+                    VSHPlug_Path_3.ReadOnly = true;
+                    btn_VSHPlug_3.Enabled = true;
+                }
+                else
+                {
+                    VSHPlug_Name_3.Text = "NONE";
+                    VSHPlug_Path_3.Text = "/dev_hdd0/tmp/vsh_plugin_3.sprx";
+                    btn_VSHPlug_3.Text = "Load";
+                    VSHPlug_Path_3.ReadOnly = false;
+                    btn_VSHPlug_3.Enabled = true;
+                }
+                name = ""; path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(4, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_4.Text = name;
+                    VSHPlug_Path_4.Text = path;
+                    btn_VSHPlug_4.Text = "Unload";
+                    VSHPlug_Path_4.ReadOnly = true;
+                    btn_VSHPlug_4.Enabled = true;
+                }
+                else
+                {
+                    VSHPlug_Name_4.Text = "NONE";
+                    VSHPlug_Path_4.Text = "/dev_hdd0/tmp/vsh_plugin_4.sprx";
+                    btn_VSHPlug_4.Text = "Load";
+                    VSHPlug_Path_4.ReadOnly = false;
+                    btn_VSHPlug_4.Enabled = true;
+                }
+                name = ""; path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(5, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_5.Text = name;
+                    VSHPlug_Path_5.Text = path;
+                    btn_VSHPlug_5.Text = "Unload";
+                    VSHPlug_Path_5.ReadOnly = true;
+                    btn_VSHPlug_5.Enabled = true;
+                }
+                else
+                {
+                    VSHPlug_Name_5.Text = "NONE";
+                    VSHPlug_Path_5.Text = "/dev_hdd0/tmp/vsh_plugin_5.sprx";
+                    btn_VSHPlug_5.Text = "Load";
+                    VSHPlug_Path_5.ReadOnly = false;
+                    btn_VSHPlug_5.Enabled = true;
+                }
+                name = ""; path = "";
+                PS3M_API.VSH_Plugin.GetInfoBySlot(6, out name, out path);
+                if ((name.Length > 0) || (path.Length > 6))
+                {
+                    VSHPlug_Name_6.Text = name;
+                    VSHPlug_Path_6.Text = path;
+                    btn_VSHPlug_6.Text = "Unload";
+                    VSHPlug_Path_6.ReadOnly = true;
+                    btn_VSHPlug_6.Enabled = true;
+                }
+                else
+                {
+                    VSHPlug_Name_6.Text = "NONE";
+                    VSHPlug_Path_6.Text = "/dev_hdd0/tmp/vsh_plugin_6.sprx";
+                    btn_VSHPlug_6.Text = "Load";
+                    VSHPlug_Path_6.ReadOnly = false;
+                    btn_VSHPlug_6.Enabled = true;
+                }
+                name = ""; path = "";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error.", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            VSHPlug_Refresh.Enabled = true;
+            panel8.Enabled = true;
+            panel9.Enabled = true;
+        }
+        private void button6_Click(object sender, EventArgs e)
+        {
+            tabC_Global.TabPages.Add(tabP_Plugins);
+            tabC_Global.SelectedTab = tabP_Plugins;
+            tabC_Global.TabPages.Remove(tabP_PluginsAdv);
+        }
+        private void button7_Click(object sender, EventArgs e)
+        {
+            tabC_Global.TabPages.Add(tabP_PluginsAdv);
+            tabC_Global.SelectedTab = tabP_PluginsAdv;
+           tabC_Global.TabPages.Remove(tabP_Plugins);
+        }
+        private void btn_VSHPlug_0_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_0.Text == "Load") PS3M_API.VSH_Plugin.Load(0, VSHPlug_Path_0.Text);
+            else if (btn_VSHPlug_0.Text == "Unload")  PS3M_API.VSH_Plugin.Unload(0);
+            VSHPlug_Refresh_Click(sender, e);
+        }
+        private void btn_VSHPlug_1_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_1.Text == "Load") PS3M_API.VSH_Plugin.Load(1, VSHPlug_Path_1.Text);
+            else if (btn_VSHPlug_1.Text == "Unload") PS3M_API.VSH_Plugin.Unload(1);
+            VSHPlug_Refresh_Click(sender, e);
+        }
+        private void btn_VSHPlug_2_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_2.Text == "Load") PS3M_API.VSH_Plugin.Load(2, VSHPlug_Path_2.Text);
+            else if (btn_VSHPlug_2.Text == "Unload") PS3M_API.VSH_Plugin.Unload(2);
+            VSHPlug_Refresh_Click(sender, e);
+        }
+        private void btn_VSHPlug_3_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_3.Text == "Load") PS3M_API.VSH_Plugin.Load(3, VSHPlug_Path_3.Text);
+            else if (btn_VSHPlug_3.Text == "Unload") PS3M_API.VSH_Plugin.Unload(3);
+            VSHPlug_Refresh_Click(sender, e);
+        }
+        private void btn_VSHPlug_4_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_4.Text == "Load") PS3M_API.VSH_Plugin.Load(4, VSHPlug_Path_4.Text);
+            else if (btn_VSHPlug_4.Text == "Unload") PS3M_API.VSH_Plugin.Unload(4);
+            VSHPlug_Refresh_Click(sender, e);
+        }
+        private void btn_VSHPlug_5_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_5.Text == "Load") PS3M_API.VSH_Plugin.Load(5, VSHPlug_Path_5.Text);
+            else if (btn_VSHPlug_5.Text == "Unload") PS3M_API.VSH_Plugin.Unload(5);
+            VSHPlug_Refresh_Click(sender, e);
+        }
+        private void btn_VSHPlug_6_Click(object sender, EventArgs e)
+        {
+            if (btn_VSHPlug_6.Text == "Load") PS3M_API.VSH_Plugin.Load(6, VSHPlug_Path_6.Text);
+            else if (btn_VSHPlug_6.Text == "Unload") PS3M_API.VSH_Plugin.Unload(6);
+            VSHPlug_Refresh_Click(sender, e);
         }
         //WEBMAN
         private void btn_FileManager_Click(object sender, EventArgs e)
@@ -656,6 +953,6 @@ namespace PS3Lib_Mod_Demo
               (e.KeyChar != (char)Keys.Back) &&
               ((e.KeyChar != (char)Keys.Delete) || (e.KeyChar == '.'))
               ) e.Handled = true;
-        }    
+        }
     }
 }
