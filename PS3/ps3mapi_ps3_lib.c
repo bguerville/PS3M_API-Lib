@@ -86,7 +86,6 @@ int ps3mapi_set_process_mem(process_id_t pid, uint64_t addr, char *buf, int size
 
 int ps3mapi_get_process_mem(process_id_t pid, uint64_t addr, char *buf, int size )
 {
-	if (size > (64*KB)) return -1;
 	system_call_6(8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_PROC_MEM, (uint64_t)pid, (uint64_t)addr, (uint64_t)buf, (uint64_t)size);
 	return_to_user_prog(int);						
 }

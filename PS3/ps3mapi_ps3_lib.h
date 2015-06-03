@@ -151,7 +151,7 @@ int ps3mapi_get_vsh_plugin_info(unsigned int slot, char *name, char *filename);
 int ps3mapi_check_syscall(int num);
 int ps3mapi_disable_syscall(int num);
 int ps3mapi_pdisable_syscall8(int mode);
-int ps3mapi_pcheck_syscall8();
+int ps3mapi_pcheck_syscall8(void);
 
 //-----------------------------------------------
 //PSID/IDPS
